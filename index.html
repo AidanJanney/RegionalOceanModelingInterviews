@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regional Ocean Modeling — Expert Conversations</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Oceanographic palette — SST thermal colormap meets bathymetric chart */
+      --deep:      #0B2B40;   /* abyssal — page anchor, dark surfaces */
+      --mid:       #1B6B82;   /* mid-water — primary interactive teal */
+      --surf:      #7AC5D4;   /* surface shimmer — subtle highlights */
+      --coral:     #D96C3E;   /* thermal warmth — accent, question cards */
+      --coral-bg:  #FDF0E8;   /* pale coral tint — question card fill */
+      --fog:       #EDF3F5;   /* sea fog — page background */
+      --paper:     #FFFFFF;   /* white — card surfaces */
+      --text:      #0B2B40;   /* same as --deep for text */
+      --text-mid:  #3D5A6B;   /* mid-depth text */
+      --text-mute: #7B9BA8;   /* surface text, labels */
+      --border:    #C9DDE4;   /* hairline borders */
+      --radius:    8px;
+      --nav-h:     52px;
+      --display:   Georgia, 'Times New Roman', serif;
+      --body:      system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono:      'SF Mono', 'Fira Code', Menlo, Consolas, monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--body);
+      background: var(--fog);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Focus ── */
+    :focus-visible {
+      outline: 2px solid var(--coral);
+      outline-offset: 2px;
+      border-radius: 3px;
+    }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+      html { scroll-behavior: auto; }
+    }
+
+
+    /* ════════════════════════════════════════════
+       STICKY NAV
+    ════════════════════════════════════════════ */
+    .site-nav {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      height: var(--nav-h);
+      background: var(--deep);
+      display: flex;
+      align-items: center;
+      padding: 0 2rem;
+      gap: 0.25rem;
+    }
+
+    .nav-brand {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color: var(--surf);
+      margin-right: auto;
+      white-space: nowrap;
+    }
+
+    .site-nav a {
+      padding: 0.4rem 0.85rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      border-radius: 5px;
+      transition: color 0.15s, background 0.15s;
+      letter-spacing: 0.01em;
+    }
+    .site-nav a:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.08);
+    }
+
+    section { scroll-margin-top: var(--nav-h); }
+
+
+    /* ════════════════════════════════════════════
+       HERO  (dark, bathymetric signature)
+    ════════════════════════════════════════════ */
+    .hero {
+      position: relative;
+      background: var(--deep);
+      overflow: hidden;
+      padding: 5.5rem 2rem 4rem;
+    }
+
+    /* Bathymetric contour lines — the signature element */
+    .hero-contours {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .hero-contours svg {
+      position: absolute;
+      right: -5%;
+      top: -10%;
+      width: 65%;
+      height: 120%;
+    }
+
+    .hero-inner {
+      position: relative;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--surf);
+      margin-bottom: 1.4rem;
+      opacity: 0.85;
+    }
+
+    .hero h1 {
+      font-family: var(--display);
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-weight: 400;
+      line-height: 1.12;
+      color: #fff;
+      max-width: 700px;
+      letter-spacing: -0.01em;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--surf);
+    }
+
+    .hero-sub {
+      margin-top: 1.4rem;
+      font-size: 1rem;
+      line-height: 1.75;
+      color: rgba(255,255,255,0.62);
+      max-width: 540px;
+    }
+
+    .hero-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(122,197,212,0.2);
+    }
+
+    .hero-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .hero-stat-value {
+      font-family: var(--mono);
+      font-size: 1.3rem;
+      font-weight: 400;
+      color: var(--coral);
+      letter-spacing: -0.01em;
+    }
+
+    .hero-stat-label {
+      font-size: 0.69rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .hero-cta {
+      display: inline-block;
+      margin-top: 2.5rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--surf);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(122,197,212,0.4);
+      padding-bottom: 1px;
+      transition: color 0.15s, border-color 0.15s;
+      letter-spacing: 0.01em;
+    }
+    .hero-cta:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
+
+
+    /* ════════════════════════════════════════════
+       ABOUT BODY  (sea-fog light section)
+    ════════════════════════════════════════════ */
+    .about-body {
+      background: var(--fog);
+      padding: 4rem 2rem;
+    }
+
+    .about-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .section-eyebrow {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-bottom: 1.25rem;
+    }
+
+
+    /* ── Transcript cards ── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+      gap: 1rem;
+    }
+
+    .t-card {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.35rem 1.4rem 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    }
+    .t-card:hover {
+      border-color: var(--surf);
+      box-shadow: 0 4px 16px rgba(11,43,64,0.08);
+      transform: translateY(-2px);
+    }
+
+    .t-card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+    }
+
+    .t-badge {
+      flex-shrink: 0;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.04em;
+      background: var(--deep);
+      color: var(--surf);
+      border-radius: 4px;
+      padding: 0.2rem 0.45rem;
+      margin-top: 3px;
+    }
+
+    .t-card h3 {
+      font-size: 0.88rem;
+      font-weight: 600;
+      line-height: 1.35;
+      color: var(--text);
+    }
+
+    .t-card-desc {
+      font-size: 0.79rem;
+      color: var(--text-mute);
+      line-height: 1.65;
+    }
+
+    .t-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+
+    .t-tag {
+      font-size: 0.68rem;
+      letter-spacing: 0.01em;
+      background: var(--fog);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.15rem 0.42rem;
+      color: var(--text-mute);
+    }
+
+    .view-btn {
+      margin-top: 0.3rem;
+      align-self: flex-start;
+      padding: 0.38rem 0.8rem;
+      background: transparent;
+      border: 1px solid var(--mid);
+      border-radius: 5px;
+      font-size: 0.76rem;
+      font-weight: 500;
+      color: var(--mid);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      font-family: var(--body);
+    }
+    .view-btn:hover {
+      background: var(--mid);
+      color: #fff;
+    }
+
+
+    /* ── Dataset format callout ── */
+    .format-callout {
+      margin-top: 2.5rem;
+      padding: 1.4rem 1.6rem;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--surf);
+      border-radius: var(--radius);
+    }
+
+    .format-callout h3 {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-bottom: 0.6rem;
+    }
+
+    .format-callout p {
+      font-size: 0.83rem;
+      line-height: 1.7;
+      color: var(--text-mid);
+    }
+
+    .format-callout code {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      background: var(--fog);
+      border: 1px solid var(--border);
+      padding: 0.1em 0.4em;
+      border-radius: 3px;
+      color: var(--deep);
+    }
+
+
+    /* ════════════════════════════════════════════
+       TRANSCRIPT VIEWER
+    ════════════════════════════════════════════ */
+    #transcripts {
+      background: var(--paper);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .viewer-tabs-wrap {
+      border-bottom: 1px solid var(--border);
+      background: var(--paper);
+    }
+
+    .tab-bar {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tab-bar::-webkit-scrollbar { display: none; }
+
+    .tab {
+      padding: 0.85rem 1.05rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-mute);
+      border: none;
+      border-bottom: 3px solid transparent;
+      background: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s;
+      font-family: var(--body);
+    }
+    .tab:hover  { color: var(--mid); }
+    .tab.active { color: var(--deep); border-bottom-color: var(--coral); font-weight: 600; }
+
+    .progress-track {
+      height: 2px;
+      background: var(--border);
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--coral);
+      transition: width 0.25s ease;
+    }
+
+    .viewer-body {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      min-height: 55vh;
+    }
+
+    .viewer-meta {
+      padding-bottom: 0.25rem;
+    }
+
+    .viewer-meta h2 {
+      font-size: 0.98rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .viewer-meta p {
+      font-size: 0.79rem;
+      color: var(--text-mute);
+      margin-top: 0.3rem;
+      line-height: 1.55;
+    }
+
+    /* Q&A Cards — thermal metaphor: questions rise (warm), answers run deep (cool) */
+    .exchange {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .msg-card {
+      border-radius: var(--radius);
+      padding: 1.25rem 1.4rem;
+      line-height: 1.82;
+      font-size: 0.94rem;
+      color: var(--text-mid);
+      border: 1px solid var(--border);
+    }
+
+    .msg-card.question {
+      background: var(--coral-bg);
+      border-left: 3px solid var(--coral);
+    }
+
+    .msg-card.answer {
+      background: var(--paper);
+      border-left: 3px solid var(--mid);
+    }
+
+    .msg-role {
+      font-family: var(--mono);
+      font-size: 0.64rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.7rem;
+    }
+
+    .question .msg-role { color: var(--coral); }
+    .answer   .msg-role { color: var(--mid); }
+
+    .msg-card p + p { margin-top: 0.75rem; }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.1rem;
+      padding: 0.25rem 0 0.5rem;
+    }
+
+    .pg-btn {
+      padding: 0.45rem 1rem;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 0.83rem;
+      font-weight: 500;
+      color: var(--text-mid);
+      cursor: pointer;
+      font-family: var(--body);
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .pg-btn:hover:not(:disabled) {
+      border-color: var(--mid);
+      color: var(--mid);
+      background: var(--fog);
+    }
+    .pg-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .pg-counter {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--text-mute);
+      min-width: 9rem;
+      text-align: center;
+    }
+
+    .viewer-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5rem 0;
+      color: var(--text-mute);
+      font-size: 0.88rem;
+      line-height: 1.7;
+      text-align: center;
+    }
+
+
+    /* ════════════════════════════════════════════
+       DOWNLOADS
+    ════════════════════════════════════════════ */
+    #downloads {
+      background: var(--fog);
+      padding: 3rem 2rem;
+    }
+
+    .dl-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .dl-inner h2 {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-bottom: 0.6rem;
+    }
+
+    .dl-inner p {
+      font-size: 0.82rem;
+      color: var(--text-mute);
+      margin-bottom: 1.25rem;
+      line-height: 1.6;
+    }
+
+    .dl-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.45rem 0.9rem;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 0.79rem;
+      font-weight: 500;
+      color: var(--text-mid);
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .dl-btn:hover {
+      border-color: var(--mid);
+      color: var(--mid);
+      background: var(--paper);
+    }
+
+    .dl-sep {
+      width: 1px;
+      height: 24px;
+      background: var(--border);
+      align-self: center;
+    }
+
+    /* JSONL is the primary CTA — solid, distinct */
+    .dl-btn-primary {
+      background: var(--deep);
+      border-color: var(--deep);
+      color: var(--surf);
+      font-weight: 600;
+    }
+    .dl-btn-primary:hover {
+      background: #0d3450;
+      border-color: #0d3450;
+      color: var(--surf);
+    }
+
+
+    /* ════════════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════════════ */
+    @media (max-width: 640px) {
+      .site-nav { padding: 0 1rem; }
+      .nav-brand { display: none; }
+      .hero { padding: 3.5rem 1.25rem 2.5rem; }
+      .about-body { padding: 2.5rem 1.25rem; }
+      #downloads { padding: 2.5rem 1.25rem; }
+      .tab-bar { padding: 0 1.25rem; }
+      .viewer-body { padding: 1.5rem 1.25rem 1.5rem; }
+      .hero-stats { gap: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Sticky nav (dark, matches hero) ── -->
+<nav class="site-nav">
+  <span class="nav-brand">ncar / ocean-modeling-conversations</span>
+  <a href="#about">About</a>
+  <a href="#transcripts">Transcripts</a>
+  <a href="#downloads">Downloads</a>
+</nav>
+
+<!-- ════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════ -->
+<section id="about">
+  <div class="hero">
+
+    <!-- Bathymetric depth contours — the signature element -->
+    <div class="hero-contours" aria-hidden="true">
+      <svg viewBox="0 0 700 600" fill="none" stroke="#7AC5D4"
+           xmlns="http://www.w3.org/2000/svg" stroke-width="1">
+        <ellipse cx="480" cy="310" rx="560" ry="420" opacity="0.05"/>
+        <ellipse cx="480" cy="310" rx="460" ry="340" opacity="0.07"/>
+        <ellipse cx="480" cy="310" rx="360" ry="260" opacity="0.09"/>
+        <ellipse cx="480" cy="310" rx="265" ry="188" opacity="0.11"/>
+        <ellipse cx="480" cy="310" rx="175" ry="122" opacity="0.14"/>
+        <ellipse cx="480" cy="310" rx="95"  ry="65"  opacity="0.17"/>
+        <ellipse cx="480" cy="310" rx="40"  ry="28"  opacity="0.2"/>
+      </svg>
+    </div>
+
+    <div class="hero-inner">
+      <p class="hero-eyebrow">NCAR · LLM Testing · Fine-tuning Dataset</p>
+
+      <h1>Regional Ocean<br>Modeling —<br><em>Expert Conversations</em></h1>
+
+      <p class="hero-sub">
+        Five edited interviews with physical oceanographers on configuring, tuning,
+        and evaluating regional ocean models. Structured as Q&amp;A exchanges and
+        prepared for use as a fine-tuning dataset.
+      </p>
+
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-value" id="stat-transcripts">5</span>
+          <span class="hero-stat-label">Transcripts</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-value" id="stat-exchanges">216</span>
+          <span class="hero-stat-label">Q&amp;A exchanges</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-value">MOM6 · ROMS</span>
+          <span class="hero-stat-label">Model frameworks</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-value">user / assistant</span>
+          <span class="hero-stat-label">Message format</span>
+        </div>
+      </div>
+
+      <a href="#transcripts" class="hero-cta">Read the transcripts ↓</a>
+    </div>
+  </div>
+
+  <!-- ── About body: transcript cards ── -->
+  <div class="about-body">
+    <div class="about-inner">
+      <p class="section-eyebrow">Five conversations</p>
+      <div class="cards-grid" id="aboutCards"></div>
+
+      <div class="format-callout">
+        <h3>Dataset format</h3>
+        <p>
+          Each conversation is split into individual Q&amp;A pairs in
+          <code>{"messages": [{"role": "user", …}, {"role": "assistant", …}]}</code>
+          format. The merged <code>.jsonl</code> bundles all 215 exchanges across
+          all transcripts, ready for direct ingestion by OpenAI-compatible and
+          Anthropic fine-tuning pipelines.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+     TRANSCRIPT VIEWER
+════════════════════════════════════════════ -->
+<section id="transcripts">
+  <div class="viewer-tabs-wrap">
+    <nav class="tab-bar" id="tabBar" role="tablist"></nav>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+  </div>
+  <div class="viewer-body" id="viewerBody">
+    <div class="viewer-status">Loading transcript…</div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════
+     DOWNLOADS
+════════════════════════════════════════════ -->
+<section id="downloads">
+  <div class="dl-inner">
+    <h2>Get the data</h2>
+    <p>Individual transcripts as role-tagged JSON, or all 215 exchanges bundled as JSONL for fine-tuning pipelines.</p>
+    <div class="dl-row" id="dlGrid"></div>
+  </div>
+</section>
+
+
+<script>
+/* ── Single source of truth for all transcript metadata ── */
+const TRANSCRIPTS = [
+  {
+    file:  'transcripts/Edited_Transcript_1.json',
+    label: 'Coral Triangle & Benguela',
+    title: 'Coral Triangle & Benguela Upwelling',
+    desc:  'Indonesian Throughflow representation, tidal mixing in narrow straits, iterative bathymetric tuning, and open-boundary domain design.',
+    tags:  ['Indonesian Throughflow', 'Tidal Mixing', 'Bathymetry', 'Open Boundaries']
+  },
+  {
+    file:  'transcripts/Edited_Transcript_3.json',
+    label: 'NW Atlantic Forecasting',
+    title: 'Northwest Atlantic Seasonal Forecasting',
+    desc:  'Evaluation of a 1/12° NW Atlantic model — Gulf Stream path, horizontal viscosity trade-offs, boundary and atmospheric forcing choices, and BGC diagnostics.',
+    tags:  ['Gulf Stream', 'Viscosity Tuning', 'Seasonal Forecasting', 'Biogeochemistry']
+  },
+  {
+    file:  'transcripts/Edited_Transcript_4.json',
+    label: 'Black Sea, Arctic & Pacific',
+    title: 'Black Sea, Arctic & Equatorial Pacific',
+    desc:  'Mixed-layer dynamics and overflow modeling across three contrasting regions — vertical grid choices, viscosity operators, advection schemes, and equatorial coupling.',
+    tags:  ['Black Sea', 'Vertical Grids', 'Mixing Schemes', 'Equatorial Dynamics']
+  },
+  {
+    file:  'transcripts/Edited_Transcript_5.json',
+    label: 'California Current',
+    title: 'California Current System',
+    desc:  'A regional modeling sequence from forcing to ecosystem evaluation — coastal upwelling diagnostics, nudging trade-offs, and observation–model comparison strategies.',
+    tags:  ['Upwelling', 'Ecosystem Modeling', 'Hindcast', 'Nudging']
+  },
+  {
+    file:  'transcripts/Edited_Transcript_6.json',
+    label: 'NE Pacific & Coral Triangle BGC',
+    title: 'Northeast Pacific Fisheries & Coral Triangle BGC',
+    desc:  'Cold pool dynamics in the Bering Sea, adaptive restratification parameterizations, and configuring a high-resolution Coral Triangle biogeochemical model.',
+    tags:  ['Bering Sea', 'Cold Pool', 'Restratification', 'BGC']
+  }
+];
+
+const BADGES = ['T1', 'T3', 'T4', 'T5', 'T6'];
+
+/* ── Build about cards ── */
+document.getElementById('aboutCards').innerHTML = TRANSCRIPTS.map((t, i) => `
+  <div class="t-card">
+    <div class="t-card-top">
+      <span class="t-badge">${BADGES[i]}</span>
+      <h3>${esc(t.title)}</h3>
+    </div>
+    <p class="t-card-desc">${esc(t.desc)}</p>
+    <div class="t-tags">${t.tags.map(g => `<span class="t-tag">${esc(g)}</span>`).join('')}</div>
+    <button class="view-btn" onclick="viewTranscript(${i})">View transcript →</button>
+  </div>`).join('');
+
+/* ── Build tabs ── */
+document.getElementById('tabBar').innerHTML = TRANSCRIPTS.map((t, i) => `
+  <button class="tab${i === 0 ? ' active' : ''}" role="tab" onclick="selectTab(${i})">
+    ${esc(t.label)}
+  </button>`).join('');
+
+/* ── Build download row (labels match tabs) ── */
+const dlGrid = document.getElementById('dlGrid');
+TRANSCRIPTS.forEach(t => {
+  const a = Object.assign(document.createElement('a'), {
+    className: 'dl-btn', href: t.file, download: '', textContent: '↓ ' + t.label
+  });
+  dlGrid.appendChild(a);
+});
+dlGrid.appendChild(Object.assign(document.createElement('div'), { className: 'dl-sep' }));
+dlGrid.appendChild(Object.assign(document.createElement('a'), {
+  className: 'dl-btn dl-btn-primary',
+  href: 'data/merged_for_finetuning.jsonl',
+  download: '',
+  textContent: '↓ All transcripts (.jsonl)'
+}));
+
+/* ── Viewer state ── */
+const cache = {};
+let currentIdx  = 0;
+let currentExch = 0;
+let exchanges   = [];
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function paragraphs(text) {
+  return text.trim().split('\n').map(s => s.trim()).filter(Boolean)
+    .map(s => `<p>${esc(s)}</p>`).join('');
+}
+
+function groupMessages(messages) {
+  const groups = [];
+  let cur = null;
+  for (const m of messages) {
+    if (m.role === 'user') {
+      if (cur) groups.push(cur);
+      cur = { q: m.content, a: [] };
+    } else if (m.role === 'assistant') {
+      if (!cur) cur = { q: null, a: [] };
+      cur.a.push(m.content);
+    }
+  }
+  if (cur) groups.push(cur);
+  return groups;
+}
+
+function renderExchange() {
+  const ex    = exchanges[currentExch];
+  const total = exchanges.length;
+  const t     = TRANSCRIPTS[currentIdx];
+  let html    = `
+    <div class="viewer-meta">
+      <h2>${esc(t.title)}</h2>
+      <p>${esc(t.desc)}</p>
+    </div>
+    <div class="exchange">`;
+
+  if (ex.q) {
+    html += `<div class="msg-card question"><div class="msg-role">Interviewer</div>${paragraphs(ex.q)}</div>`;
+  }
+  for (const ans of ex.a) {
+    html += `<div class="msg-card answer"><div class="msg-role">Expert</div>${paragraphs(ans)}</div>`;
+  }
+
+  html += `</div>
+    <div class="pagination">
+      <button class="pg-btn" onclick="navigate(-1)" ${currentExch === 0 ? 'disabled' : ''}>← Previous</button>
+      <span class="pg-counter">${currentExch + 1} / ${total}</span>
+      <button class="pg-btn" onclick="navigate(1)"  ${currentExch === total-1 ? 'disabled' : ''}>Next →</button>
+    </div>`;
+
+  document.getElementById('viewerBody').innerHTML = html;
+  document.getElementById('progressFill').style.width = `${((currentExch + 1) / total) * 100}%`;
+}
+
+function navigate(delta) {
+  currentExch = Math.max(0, Math.min(exchanges.length - 1, currentExch + delta));
+  renderExchange();
+  document.getElementById('transcripts').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function loadTranscript(idx, exchIdx) {
+  const t = TRANSCRIPTS[idx];
+  if (!cache[t.file]) {
+    try {
+      const data = await (await fetch(t.file)).json();
+      cache[t.file] = groupMessages(data.messages);
+    } catch {
+      document.getElementById('viewerBody').innerHTML = `
+        <div class="viewer-status">
+          Could not load <strong>${esc(t.file)}</strong>.<br>
+          Requires a web server — use GitHub Pages or run<br>
+          <code>python3 -m http.server</code> locally.
+        </div>`;
+      return;
+    }
+  }
+  exchanges   = cache[t.file];
+  currentIdx  = idx;
+  currentExch = Math.min(exchIdx ?? 0, exchanges.length - 1);
+  document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', i === idx));
+  renderExchange();
+}
+
+function selectTab(idx) {
+  document.getElementById('viewerBody').innerHTML = '<div class="viewer-status">Loading…</div>';
+  document.getElementById('progressFill').style.width = '0%';
+  loadTranscript(idx, 0);
+}
+
+function viewTranscript(idx) {
+  document.getElementById('transcripts').scrollIntoView({ behavior: 'smooth' });
+  selectTab(idx);
+}
+
+document.addEventListener('keydown', e => {
+  if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+  if (e.key === 'ArrowLeft')  navigate(-1);
+  if (e.key === 'ArrowRight') navigate(1);
+});
+
+loadTranscript(0);
+
+/* ── Pull live stats from generated metadata ── */
+(async () => {
+  try {
+    const m = await (await fetch('data/metadata.json')).json();
+    if (m.totalExchanges)  document.getElementById('stat-exchanges').textContent   = m.totalExchanges;
+    if (m.transcriptCount) document.getElementById('stat-transcripts').textContent = m.transcriptCount;
+  } catch { /* keep hardcoded fallback values */ }
+})();
+</script>
+</body>
+</html>

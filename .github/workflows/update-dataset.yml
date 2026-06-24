@@ -1,0 +1,38 @@
+name: Update dataset
+
+# Triggers when transcript JSON files are changed, or manually.
+# Regenerates data/merged_for_finetuning.jsonl and data/metadata.json,
+# then commits them back. The commit touches only data/, so it does NOT
+# re-trigger this workflow (path filter only matches transcripts/*.json).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'transcripts/*.json'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Regenerate JSONL and metadata
+        run: python3 scripts/merge_to_jsonl.py
+
+      - name: Commit updated data files
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --staged --quiet \
+            && echo "No data changes to commit." \
+            || (git commit -m "chore: regenerate dataset from transcript changes" && git push)

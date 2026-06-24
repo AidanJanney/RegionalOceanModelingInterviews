@@ -1,0 +1,260 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "What types of scientific questions do you try to address with regional ocean models?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "I look at the small scale mixing, how it changes in the ocean, and how we parameterize it in the course resolution models. When it comes to the regional applications, density gradient overflows, like the Mediterranean/Red Sea overflow, are important. If you do regional modeling, it's very important to have the mixed-layer dynamics, the eddies, and mesoscale features correct.\n"
+    },
+    {
+      "role": "user",
+      "content": "Are you generally exploring the space of this small scale mixing to discover the dynamics and the features of the system or is it very targeted towards building these models to be as accurate as possible for these different regions?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "If you do realistic regional studies you try to get as close as possible to the observations or climatology. The mean biases of the error should be less, but if you are doing a dynamical study you try to understand how the mixing is changing or how the overflow will go one way or another depending on the situation.\n"
+    },
+    {
+      "role": "user",
+      "content": "What are some examples of when you might prioritize one or the other?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "Say you are modeling the black sea. If you are interested in the dynamics of the system, you might first look at the mixing. Otherwise, if the model is part of a forecasting system, you basically have to be as close as possible to the observations.\n"
+    },
+    {
+      "role": "user",
+      "content": "I’m working on a model of the Black Sea and a panarctic model of the Arctic Ocean. Tell me about these regions.\n"
+    },
+    {
+      "role": "assistant",
+      "content": "The Black Sea and the Arctic Ocean are two very different regions. They kind of share similar modeling practices because both of them are relatively removed from the rest of the oceans, so the ocean processes are very unique in these regions. The Arctic has sea ice and deep water formation sites and also the Atlantic water which is a big source. The Black Sea is a closed basin very far away from the oceans. It has unique dynamics with a two-layer system where a thin low-salinity surface layer overlies a relatively uniform higher-salinity deep layer.\n"
+    },
+    {
+      "role": "user",
+      "content": "What types of features or dynamics can I look at to start diagnosing these models? How can I tell if behavior is appropriate?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "When you set up the models you are trying to understand both to capture these dynamics in different spatial regions, vertically and horizontally. So this might be related to how you choose the vertical grid in a model. Use observations for evaluation,  the ARGO float is an important source, and observed cruises are also very useful.  If you are especially integrating the simulations long enough, you can look at mean studies. If you are integrating a very short amount of time to forecast, you can look at those cruise observations if you have them.\n"
+    },
+    {
+      "role": "user",
+      "content": "What parameters and physical schemes might be effective for tuning the model?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "Advection schemes are quite important when it comes to the ocean. Not every model has multiple advection schemes to test. MOM6 does not have explicit advection scheme options, but you can alter other horizontal and vertical variables to adjust it. It's quite important if you change from one system to another, to make sure you can preserve some key features and spatial patterns, even if just qualitatively. You can generally divide schemes, or parameterizations, like this into horizontal and vertical regimes.\n"
+    },
+    {
+      "role": "user",
+      "content": "What else can I look at in the model to determine if it’s scientifically suitable?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "We also have some internal processes, so we need to have significant internal variability or not depending on the region.\n"
+    },
+    {
+      "role": "user",
+      "content": "Once I have started to diagnose the behavior of the system, how can I start to modify this behavior and push it towards certain patterns?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "If the model allows, you can change the vertical mixing scheme, so instead of KPP you can use TKE.  Try all of them and see how the mixing looks in the model versus the observation. You can do the same thing for the horizontal schemes, but the horizontal mixing generally arises from the advection and the viscosity. Horizontal viscosity is an easy variable to modify in MOM6.\n"
+    },
+    {
+      "role": "user",
+      "content": "How can I modify viscosity? What does that mean?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "For the viscosity operator you can have it depend on your resolution. In a regional model you will often have high resolution, so you will have mesoscale features or sub-mesoscale features explicitly resolved. Combined with parameterizations, this means you may need grid noise control. That's the viscosity operator's job: to get correct mesoscale/sub-mesoscale features and reduce the grid noise. For that you can have multiple options you can have a laplacian operator or a biharmonic operator, or others. You can have a constant viscosity, and generally you have to compare these eddies and eddie structures from the satellite surface observations to diagnose how the viscosity operator is behaving. Be careful about using viscosity values that start to become unrealistic, even if it looks like it’s improving bias.\n"
+    },
+    {
+      "role": "user",
+      "content": "How can you tell if eddy structure is “good”?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "When we look at surface observations, we look at where the eddies are. For instance, in the black sea there is a rim current composed of eddies around the black sea, and you can compare it with the satellite observations. You have similar, larger scale eddy structure in the Arctic Ocean along the Norwegian current and in the northwest Atlantic with the Gulf Stream.\n"
+    },
+    {
+      "role": "user",
+      "content": "If I can see how the eddies are behaving, what parts of the viscosity/viscosity operator do I actually want to change?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "There are also coefficients associated with the viscosity, and you have to tune them in a systematic way. This is the hard part. You need to make sure to change only one thing at a time.  So when you start to change two things at a time, you don't know which one causes a change in dynamics. You need to be sure you have a systematic understanding of each parameterization and what they physically dictate.\n"
+    },
+    {
+      "role": "user",
+      "content": "What else do I need to pay attention to outside of horizontal and vertical mixing?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "Sometimes there are very local issues like in the case of the Black Sea there's the Bosphorus Strait in a very narrow strait but it's very important for the exchange of the Bosphorus to Black Sea. For the Mediterranean, the state of the Gibraltar Strait plays a primary role in regulating the region. If there are some important features to bathymetry like a canyon or a sea mountain, they have to be carefully treated.\n"
+    },
+    {
+      "role": "user",
+      "content": "Once I start to focus on the bathymetry, how does that interact with resolution, especially in the vertical grid?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "Different models have different vertical grid schemes. There is a terrain following sigma coordinate, which is good for high resolution, volatile bathymetry. There is a Z* or geopotential grid, so it has discrete levels of the grid. It's good for most of the surface processes because in the mixed layer and the surfaces you like to have Z* grid that can reliably resolve processes with a known fidelity and resolution.\n"
+    },
+    {
+      "role": "user",
+      "content": "What are other options? I’ve heard about a hybrid grid.\n"
+    },
+    {
+      "role": "assistant",
+      "content": "When you go to the deeper part of the ocean especially over steep topography it might start to show some numerical mixing. MOM6 has a hybrid grid which has an option for isopycnals which follow density. This reduces spurious mixing in the open ocean because there is significantly less noise and transfer between density layers. In MOM6 with the hybrid grid, it starts from the grid you pass in, and then it evolves over the course of the model run, then the results are interpolated to the grid you input. The ocean is a very stratified fluid, so it will follow the density coordinates for the most of the time. The density coordinate is more natural, and it captures the dynamics much more easily.\n"
+    },
+    {
+      "role": "user",
+      "content": "How do I know which vertical coordinate to choose?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "All of them have pros and cons for different regions.  So you need to make sure that you make a decision tailored for a specific region. You might plan to use the sigma grid type if there is a lot of complex topography that the grid needs to follow. If there's overflow passing through or we are going to run this simulation long enough, we like to keep the water properties stable, so we use an isopycnal model, which is the hybrid coordinate. It all can work for different regions for different time scales. This applies to the horizontal grid too. There are structured grid models and unstructured grid models, or finite element type grid models. These are very good when you are capturing a narrow channel, a bay, a river inflow, or coastal dynamics.\n"
+    },
+    {
+      "role": "user",
+      "content": "Are there any other types of grids that might be helpful\n"
+    },
+    {
+      "role": "assistant",
+      "content": "Unstructured grids are good at resolving small, complicated inflows and coastal features, but they are generally computationally expensive. When deciding on horizontal and vertical grid options you might think about: What are the basic dynamics in here? What are the geometrical constraints here? MOM6 allows for input of different vertical coordinates, but during runtime, it only uses a hybrid coordinate. This is suitable for most applications.\n"
+    },
+    {
+      "role": "user",
+      "content": "Are there ways to improve the MOM6 behavior without access to some of these grid types?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "In many cases it doesn't need to be on the traditional square structure grid. You can change the grid structure if you preserve the angles of those 90° gradients. You can still follow a coastal region to have more resolution around the coastal area when you are running a model like MOM6. It’s not easy, but it is possible. Maybe we want to use a hybrid vertical coordinate, but it would be nice to have more resolution in the coastal region and less resolution offshore. This would be a conformal grid with variable resolution.\n"
+    },
+    {
+      "role": "user",
+      "content": "How much are the factors like resolution and size set in stone? Do I decide on that at the beginning and then leave it or is it something that you revisit later in the tuning process?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "It is a determination early on in the model development process, and it depends on the features of interest and available computational resources. If you're interested in mesoscale features, you might start at a coarse resolution only to realize it doesn’t resolve the features you are interested in. Then you can scale the resolution, but it starts to gain a lot of computational cost, especially if you want to run for a long time or in a large region. You may also start to resolve additional features you were not originally considering, and this may conflict with parameterizations that are designed for coarser resolutions. Generally 1/10° is considered eddy-resolving, but often the true features of eddies are not resolved until higher resolution. For extreme cases, like acoustic waves you need to go all the way to 1 m resolution both in horizontal and vertical but if you are resolving acoustic waves that's a different beast.\n"
+    },
+    {
+      "role": "user",
+      "content": "Do you ever worry about maybe falling into kind of a false minimum or a false optimization when only changing one variable at a time? What if there is a different combination of variables that you would only find by exploring the full space?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "Yeah, compensation of errors is something you need to be aware of. If you change one thing, another error can compensate to give good bias. That’s why modelers have to know the parameterizations and their physical meaning. For example, you cannot increase viscosity to 100,000 m square per second because then the model is not going to move anywhere, but the bias might look good. That doesn't mean it's the right thing. You need to reflect on why you might make changes and the real world implications. Think about how biases and processes might interact with each other, even as you only change one at a time.\n"
+    },
+    {
+      "role": "user",
+      "content": "How do I try and avoid these false or faulty minima?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "When you change parameters and try to grasp the idea of why certain modifications induce certain behaviors. One parameter might increase the mix layer depth while another parameter might be decreasing the depth. These might accidentally result on a good bias with unphysical or competing logic. Try to get a feel for how parameters dictate the mechanics of a system by changing them by an order of magnitude; this can also help set bounds on a parameter. Remember that these models are just a representation of reality and we have to both accept and evaluate them within that context. Like how a painting of an apple is still a painting, not the physical fruit.\n"
+    },
+    {
+      "role": "user",
+      "content": "I’m modeling a region in the pacific to look at equatorial dynamics.\n"
+    },
+    {
+      "role": "assistant",
+      "content": "When considering equatorial dynamics, it inherently becomes more complex, as we need to look closely at the atmospheric forcing and the feedback to the atmosphere. It is a highly coupled system at the equator.\n"
+    },
+    {
+      "role": "user",
+      "content": "What does it mean for it to be a highly coupled system?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "The dynamics of the atmosphere and ocean feed off of each other. The domain in this region is easier because there is no significant topography. We likely want to run a fully coupled ocean-atmosphere model, but we may want to narrow down parameters and behavior with an ocean-only model first, to save on time and computation. We especially care about the mixed-layer depth and the dissipation of energy from the atmospheric forcing through the water column.\n"
+    },
+    {
+      "role": "user",
+      "content": "What other parts of the model might pose a significant challenge for the tuning process?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "In the case of the equatorial dynamics, there is also the Pacific undercurrent and mixed layer depth which are quite hard to capture in model studies. We would want to think carefully about which observations to use and how much we trust them. There is also the case of wave dynamics because of the turbulent and volatile surface. We would likely want a higher vertical and horizontal resolution to fully capture the mixed-layer dynamics and the horizontal turbulence patterns.\n"
+    },
+    {
+      "role": "user",
+      "content": "What can I start with to modify the mixed layer and the undercurrent behavior?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "The vertical grid resolution drives the mixed layer and the undercurrent, both of which need to be carefully represented (at different depths).\n"
+    },
+    {
+      "role": "user",
+      "content": "Would you be concerned about the coriolis discretization when you're at the equator?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "I think the Arakawa C grid should be fine with the coriolis discretization. When you go to higher resolutions the C grid starts to become the best bet, but at coarser resolutions it can cause issues.\n"
+    },
+    {
+      "role": "user",
+      "content": "How can I evaluate the behavior and bias of the model?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "To evaluate the behavior of the model, we can look at gridded ocean products like the World Ocean Atlas (WOA) and the GLORYS reanalysis. Point observations are helpful, but they are difficult to find across significant spatial extents. After comparing to basic state variables, look at the variability of the system. Isolate different processes (e.g. currents, averages, transports), and look at their seasonal, monthly, and interannual signals.\n"
+    },
+    {
+      "role": "user",
+      "content": "Are the boundary conditions important? What about the vertical mixing parameterizations?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "Generally, the boundary conditions can constrain and dictate variability. In the equatorial dynamics there has to be both sheer vertical mixing and the mixed layer dynamics.  Some of the different vertical mixing schemes have been tuned to support these processes, but they are also nonspecific to the model and current knowledge.\n"
+    },
+    {
+      "role": "user",
+      "content": "What other schemes/parameters might have a significant impact in this area?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "Additional parameters and physics like the radiation scheme (how radiation gets to the surface through clouds and how shortwave radiation penetrates the surface) are important for the energy and movement of these features. They are often tuned for the global model, but this could be different on the regional scale.\n"
+    },
+    {
+      "role": "user",
+      "content": "Do you think you might prioritize things like climatology and maybe observations of these more fundamental variables SSTs, salinity or would you prioritize things like processes (e.g. making sure the undercurrent sits at the right depth and strength).\n"
+    },
+    {
+      "role": "assistant",
+      "content": "We want to tune the mean state and behavior of the model first, so things like SST (sea surface temperature), sea surface salinity, sea surface height, heat, the thermocline (temperature vs. depth). Then we might look at the variability Often, models heavily prioritize the mean over the variability, but then you can easily fall into biases for the wrong reasons, and later, when you look at your process representations, they can be faulty. Additionally, regional models often need to focus on the seasonality and different time scales of many more processes compared to a global model, so variability becomes even more crucial.  Model tuning is a mysterious art. Often, priorities around model tuning will change with region, purpose, and scientific communities. Over time, different sacrifices become more widely acceptable while others do not.\n"
+    },
+    {
+      "role": "user",
+      "content": "Do I ever want to tune or change the boundary conditions? How do I know if they are causing issues?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "The practice of tuning boundary conditions has changed over time. Generally, the open boundaries should leave the domain out the signal but bring the signal back from outside. However, you want to introduce the external signal without dominating or dictating the internal behavior or variability. Additionally, you need to make sure the boundaries do not contain or reflect any internal behavior. Look for weird artifacting and reflection at the boundaries. Factors like noise and weird behavior might only be evident if you look at animations of the region and boundary conditions. Keep in mind, the equations and physics are not defined at the boundaries; it becomes a different, intractable problem. Tuning the boundary conditions is different from tuning any other part of the model. One possible approach for addressing faulty boundary conditions is to adjust the size of your domain to include or exclude certain features from the boundary conditions. Generally, you want the OBCs (open boundary conditions) to touch the least interesting parts of the ocean, potentially even land. However, this simply avoids the unreliable behavior of OBCs rather than fixing it.\n"
+    },
+    {
+      "role": "user",
+      "content": "Should I consider nudging or restoring different variables?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "Nudging inherently happens at the boundaries, and the interaction between the atmosphere and ocean can often feel like nudging. However, avoid nudging the background state or the entire behavior of the system. Introducing forcings is very different from adjusting the entire space of the model. If you choose to nudge the background state towards some climatology, you no longer have a model that is telling you useful information about the dynamics or behavior of the system. If you need an operational forecasting/prediction system, this is different and data assimilation becomes a factor.\n"
+    },
+    {
+      "role": "user",
+      "content": "What are the basic state variables and how should I approach the initial tuning/evaluation of this model?\n"
+    },
+    {
+      "role": "assistant",
+      "content": "If you are trying to generally diagnose the behavior of a model (before diving into specific processes), look at these state variables (temperature, salinity, velocity, energy) and tinker with the horizontal and vertical mixing schemes. Look at the advection scheme (how water/heat/energy is being moved around). Then, look at how the model captures some basic properties like the diurnal cycle or seasonal cycle. Depending on the scientific question, you may only need to care about the upper levels of the ocean (maybe only the top 250m in some cases)."
+    }
+  ]
+}
