@@ -2,7 +2,7 @@
 
 A curated dataset of expert interviews on regional ocean model configuration, tuning, and evaluation. Five edited Q&A conversations with physical oceanographers, structured for use as a fine-tuning dataset for large language models.
 
-**[→ Browse the transcripts online](https://aidanjanney.github.io/LLM_Testing_Conversations/)** *(update with your GitHub Pages URL)*
+**[→ Browse the transcripts online](https://aidanjanney.github.io/RegionalOceanModelingInterviews/)** *(update with your GitHub Pages URL)*
 
 ---
 
