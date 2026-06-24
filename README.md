@@ -58,6 +58,13 @@ python3 scripts/merge_to_jsonl.py
 2. Set **Source** to **GitHub Actions**
 3. Push to `main` — the `deploy-pages` workflow handles the rest
 
+## Contributors
+
+| Contributor | Role |
+|---|---|
+| [Aidan Janney](https://github.com/aidanjanney) | Dataset curation, repository setup |
+| [Claude](https://claude.ai) (Anthropic) | AI assistant — repository scaffolding, README, automation |
+
 ## Context
 
 Produced at [NCAR](https://ncar.ucar.edu) as part of LLM testing work for earth system modeling applications.
